@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布匹加工采购量计算工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            width: 95%;
+            max-width: 1400px;
+            padding: 35px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #1a2a6c, #b21f1f);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            right: 25%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #1a2a6c, transparent);
+        }
+        
+        h1 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            font-size: 2.4rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #555;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            background: #e0e0e0;
+            border: none;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab.active {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .results-section {
+            background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #90caf9;
+        }
+        
+        h2 {
+            color: #1a2a6c;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h2 i {
+            color: #b21f1f;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #1a2a6c;
+            font-size: 1.05rem;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #9e9e9e;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        
+        select:focus, input:focus {
+            border-color: #1a2a6c;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(26, 42, 108, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(26, 42, 108, 0.4);
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(26, 42, 108, 0.5);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .result-item {
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .result-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a2a6c;
+            margin-bottom: 5px;
+        }
+        
+        .result-detail {
+            color: #b21f1f;
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+        
+        .unit {
+            font-size: 1.1rem;
+            color: #777;
+            margin-left: 5px;
+            font-weight: 500;
+        }
+        
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            background: #1a2a6c;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .product-info div {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .product-info .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .product-info .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .highlight {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .highlight .result-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .highlight .result-value {
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .purchase-comparison {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(to right, #e8f5e9, #c8e6c9);
+            border-radius: 15px;
+            font-size: 1rem;
+            line-height: 1.7;
+            border: 1px solid #a5d6a7;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .purchase-comparison h3 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .comparison-table th {
+            background: #1a2a6c;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #f5f7ff;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .comparison-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .current-size {
+            background: linear-gradient(to right, #fff8e1, #ffecb3) !important;
+            font-weight: 600;
+        }
+        
+        .purchase-amount {
+            font-weight: 600;
+            color: #b21f1f;
+        }
+        
+        .purchase-formula {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.95rem;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-item {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .summary-item .title {
+            font-weight: 600;
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .summary-item .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #b21f1f;
+        }
+        
+        .instructions {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+        
+        .batch-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .batch-table th {
+            background: #1a2a6c;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .batch-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .batch-table input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .batch-results {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .batch-total {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #b21f1f;
+            margin-top: 10px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .product-type-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .product-bed {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .product-bed-without-seam {
+            background: #3f51b5;
+            color: white;
+        }
+        
+        .product-pillow {
+            background: #b21f1f;
+            color: white;
+        }
+        
+        .product-quilt {
+            background: #2e7d32;
+            color: white;
+        }
+        
+        .product-seam {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .batch-action {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .batch-action button {
+            flex: 1;
+        }
+        
+        .batch-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .batch-tab {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .batch-tab.active {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .batch-section {
+            display: none;
+        }
+        
+        .batch-section.active {
+            display: block;
+        }
+        
+        .batch-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .batch-summary-item {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .batch-summary-item .title {
+            font-weight: 600;
+            color: #1a2a6c;
+            margin-bottom: 10px;
+        }
+        
+        .batch-summary-item .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #b21f1f;
+        }
+        
+        .type-explanation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .type-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            width: 75%;
+        }
+        
+        .total-fabric {
+            font-weight: 700;
+            color: #1a2a6c;
+        }
+        
+        .size-input-container {
+            position: relative;
+        }
+        
+        .size-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .batch-total-display {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .batch-total-display.active {
+            display: block;
+        }
+        
+        .batch-total-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .batch-total-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .batch-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .batch-summary-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .batch-summary-card .title {
+            font-weight: 600;
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .batch-summary-card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #b21f1f;
+        }
+        
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #b21f1f;
+            font-weight: 500;
+        }
+        
+        #batch-results {
+            display: none;
+        }
+        
+        .calculation-note {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-left: 3px solid #2196F3;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        /* 折叠按钮样式 */
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: #1a2a6c;
+            cursor: pointer;
+            font-size: 1.8rem;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            width: auto;
+            padding: 0;
+            box-shadow: none;
+            transform: rotate(0deg);
+        }
+        
+        .toggle-btn:hover {
+            transform: none;
+            box-shadow: none;
+            color: #b21f1f;
+        }
+        
+        .toggle-btn.collapsed {
+            transform: rotate(180deg);
+        }
+        
+        /* 折叠状态 */
+        .collapsed-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .comparison-container {
+            transition: all 0.3s ease;
+        }
+        
+        /* 重置按钮样式 */
+        .reset-btn {
+            background: #f5f5f5;
+            color: #1a2a6c;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: auto;
+            margin-top: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                width: 100%;
+                border-radius: 8px;
+                margin-bottom: 5px;
+            }
+            
+            .filter-controls {
+                flex-wrap: wrap;
+            }
+        }
+        
+        /* 智能建议高亮 */
+        .suggestion-highlight {
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> 布匹加工采购量计算工具</h1>
+            <p class="subtitle">支持含接片床笠、不含接片床笠、被套、枕套及接片的采购量计算</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="single">单产品计算</button>
+            <button class="tab" data-tab="batch">批量处理</button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="input-section">
+                <div class="tab-content active" id="single-tab">
+                    <h2><i class="fas fa-edit"></i> 单产品输入参数</h2>
+                    
+                    <div class="instructions">
+                        <p><i class="fas fa-info-circle"></i> 选择产品类型，输入尺寸和加工数量计算采购量</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productType"><i class="fas fa-tshirt"></i> 产品类型</label>
+                        <select id="productType">
+                            <option value="bed">含接片床笠</option>
+                            <option value="bedWithoutSeam">不含接片床笠</option>
+                            <option value="quilt">被套</option>
+                            <option value="pillow">枕套</option>
+                            <option value="seam">接片</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-header">
+                            <label for="sizeInput"><i class="fas fa-ruler-combined"></i> 产品尺寸</label>
+                            <button class="reset-btn" id="resetSizeBtn"><i class="fas fa-redo"></i> 重置尺寸</button>
+                        </div>
+                        <div class="size-input-container">
+                            <input type="text" id="sizeInput" placeholder="输入尺寸 (如: 80x200cm)">
+                            <div class="size-suggestions" id="sizeSuggestions"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-header">
+                            <label for="quantity"><i class="fas fa-cubes"></i> 加工数量</label>
+                            <button class="reset-btn" id="resetQuantityBtn"><i class="fas fa-redo"></i> 重置数量</button>
+                        </div>
+                        <input type="number" id="quantity" min="1" step="1" value="0">
+                    </div>
+                    
+                    <button id="calculateBtn"><i class="fas fa-calculator"></i> 计算采购量</button>
+                    
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                    
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="title"><i class="fas fa-percentage"></i> 码尺利用率</div>
+                            <div class="value">95%</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="title"><i class="fas fa-divide"></i> 采购系数</div>
+                            <div class="value">1.0526</div>
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-note">
+                        <p><i class="fas fa-info-circle"></i> 计算结果保留小数点后1位（四舍五入）</p>
+                        <p><i class="fas fa-exclamation-triangle"></i> 接片采购量 = (基础用布 × 数量) ÷ 7 × 1.0526</p>
+                        <p><i class="fas fa-exclamation-triangle"></i> 不含接片床笠采购量 = 床笠采购量 + 接片采购量</p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="batch-tab">
+                    <h2><i class="fas fa-tasks"></i> 批量处理</h2>
+                    
+                    <div class="instructions">
+                        <p><i class="fas fa-info-circle"></i> 按产品类型分别输入加工数量，系统将自动计算采购总量</p>
+                    </div>
+                    
+                    <div class="batch-tabs">
+                        <div class="batch-tab active" data-batch-type="bed">含接片床笠</div>
+                        <div class="batch-tab" data-batch-type="bedWithoutSeam">不含接片床笠</div>
+                        <div class="batch-tab" data-batch-type="quilt">被套</div>
+                        <div class="batch-tab" data-batch-type="pillow">枕套</div>
+                        <div class="batch-tab" data-batch-type="seam">接片</div>
+                    </div>
+                    
+                    <div class="batch-section active" id="batch-bed">
+                        <h3><i class="fas fa-bed"></i> 含接片床笠批量处理</h3>
+                        <table class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>产品尺寸</th>
+                                    <th>基础用布 (米/件)</th>
+                                    <th>接片用布 (米/件)</th>
+                                    <th>加工数量</th>
+                                    <th>采购量 (米)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchBedTable">
+                                <!-- 含接片床笠批量数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="batch-section" id="batch-bedWithoutSeam">
+                        <h3><i class="fas fa-bed"></i> 不含接片床笠批量处理</h3>
+                        <table class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>产品尺寸</th>
+                                    <th>基础用布 (米/件)</th>
+                                    <th>接片用布 (米/件)</th>
+                                    <th>总用布 (米/件)</th>
+                                    <th>加工数量</th>
+                                    <th>采购量 (米)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchBedWithoutSeamTable">
+                                <!-- 不含接片床笠批量数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="batch-section" id="batch-quilt">
+                        <h3><i class="fas fa-blanket"></i> 被套批量处理</h3>
+                        <table class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>产品尺寸</th>
+                                    <th>基础用布 (米/件)</th>
+                                    <th>加工数量</th>
+                                    <th>采购量 (米)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchQuiltTable">
+                                <!-- 被套批量数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="batch-section" id="batch-pillow">
+                        <h3><i class="fas fa-pillow"></i> 枕套批量处理</h3>
+                        <table class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>产品尺寸</th>
+                                    <th>基础用布 (米/件)</th>
+                                    <th>加工数量</th>
+                                    <th>采购量 (米)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchPillowTable">
+                                <!-- 枕套批量数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="batch-section" id="batch-seam">
+                        <h3><i class="fas fa-cut"></i> 接片批量处理</h3>
+                        <table class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>产品尺寸</th>
+                                    <th>基础用布 (米/件)</th>
+                                    <th>加工数量</th>
+                                    <th>采购量 (米)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchSeamTable">
+                                <!-- 接片批量数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="batch-action">
+                        <button id="resetBatchBtn"><i class="fas fa-redo"></i> 重置所有输入</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <!-- 单产品计算结果 -->
+                <div id="single-results">
+                    <h2><i class="fas fa-chart-bar"></i> 单产品计算结果</h2>
+                    
+                    <div class="product-info">
+                        <div>
+                            <div class="label">产品类型</div>
+                            <div class="value" id="resultType">含接片床笠</div>
+                        </div>
+                        <div>
+                            <div class="label">产品尺寸</div>
+                            <div class="value" id="resultSize">80x200cm</div>
+                        </div>
+                        <div>
+                            <div class="label">加工数量</div>
+                            <div class="value" id="resultQuantity">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-title"><i class="fas fa-ruler"></i> 基础用布量</div>
+                            <div class="result-value"><span id="baseFabric">-</span><span class="unit">米</span></div>
+                            <div class="result-detail">每件: <span id="basePerUnit">-</span> 米</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div class="result-title"><i class="fas fa-cut"></i> 接片用布量</div>
+                            <div class="result-value"><span id="seamFabric">-</span><span class="unit">米</span></div>
+                            <div class="result-detail">每件: <span id="seamPerUnit">-</span> 米</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div class="result-title"><i class="fas fa-fabric"></i> 实际用布总量</div>
+                            <div class="result-value"><span id="totalFabric">-</span><span class="unit">米</span></div>
+                            <div class="result-detail">基础用布 + 接片用布</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div class="result-title"><i class="fas fa-shopping-cart"></i> 采购布量</div>
+                            <div class="result-value"><span id="purchaseFabric">-</span><span class="unit">米</span></div>
+                            <div class="result-detail">除去95%码尺利用率</div>
+                        </div>
+                    </div>
+                    
+                    <div class="highlight">
+                        <div class="result-title"><i class="fas fa-tag"></i> 除去码尺后实际采购量</div>
+                        <div class="result-value"><span id="finalPurchase">-</span><span class="unit">米</span></div>
+                    </div>
+                </div>
+                
+                <!-- 批量处理结果 -->
+                <div class="batch-total-display" id="batch-results">
+                    <h2><i class="fas fa-shopping-cart"></i> 批量采购总量</h2>
+                    <div class="batch-total-value"><span id="batchTotal">0.0</span> 米</div>
+                    <div class="batch-total-label">所有产品采购总量</div>
+                    
+                    <div class="batch-summary-grid">
+                        <div class="batch-summary-card">
+                            <div class="title">含接片床笠</div>
+                            <div class="value"><span id="batchBedTotal">0.0</span> 米</div>
+                        </div>
+                        <div class="batch-summary-card">
+                            <div class="title">不含接片床笠</div>
+                            <div class="value"><span id="batchBedWithoutSeamTotal">0.0</span> 米</div>
+                        </div>
+                        <div class="batch-summary-card">
+                            <div class="title">被套</div>
+                            <div class="value"><span id="batchQuiltTotal">0.0</span> 米</div>
+                        </div>
+                        <div class="batch-summary-card">
+                            <div class="title">枕套</div>
+                            <div class="value"><span id="batchPillowTotal">0.0</span> 米</div>
+                        </div>
+                        <div class="batch-summary-card">
+                            <div class="title">接片</div>
+                            <div class="value"><span id="batchSeamTotal">0.0</span> 米</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="purchase-comparison">
+            <h3>
+                <i class="fas fa-table"></i> <span id="comparisonTitle">各产品采购量对比</span>
+                <button class="toggle-btn" id="toggleComparison">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </h3>
+            
+            <div class="comparison-container" id="comparisonContainer">
+                <div class="filter-controls">
+                    <button class="filter-btn active" data-filter="all">全部产品</button>
+                    <button class="filter-btn" data-filter="bed">含接片床笠</button>
+                    <button class="filter-btn" data-filter="bedWithoutSeam">不含接片床笠</button>
+                    <button class="filter-btn" data-filter="quilt">被套</button>
+                    <button class="filter-btn" data-filter="pillow">枕套</button>
+                    <button class="filter-btn" data-filter="seam">接片</button>
+                </div>
+                
+                <div class="type-explanation">
+                    <div class="type-item"><span class="product-type-icon product-bed">床</span> 含接片床笠</div>
+                    <div class="type-item"><span class="product-type-icon product-bed-without-seam">床</span> 不含接片床笠</div>
+                    <div class="type-item"><span class="product-type-icon product-quilt">被</span> 被套</div>
+                    <div class="type-item"><span class="product-type-icon product-pillow">枕</span> 枕套</div>
+                    <div class="type-item"><span class="product-type-icon product-seam">接</span> 接片</div>
+                </div>
+                
+                <table class="comparison-table" id="comparisonTable">
+                    <thead>
+                        <tr>
+                            <th>产品类型</th>
+                            <th>产品尺寸</th>
+                            <th>基础用布 (米/件)</th>
+                            <th>总用布 (米/件)</th>
+                            <th>实际采购量 (米)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sizeComparison">
+                        <!-- 产品数据将通过JS动态填充 -->
+                    </tbody>
+                </table>
+                
+                <div class="purchase-formula">
+                    采购量计算公式: (基础用布 + 接片用布) × 加工数量 × 1.0526
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-database"></i> 数据来源: 布匹加工.xls & 不含接片床笠.xls & 接片.xls | 本地网页工具</p>
+            <p><i class="fas fa-sync-alt"></i> 采购量基于当前输入的加工数量实时计算 | 计算结果保留1位小数</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 产品数据（来自Excel）
+            const fabricData = [
+                // 含接片床笠数据
+                { type: "bed", size: "80x200cm", base: 1.46, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "90x200cm", base: 1.56, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "99x190cm", base: 1.66, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "100x200cm", base: 1.66, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "120x200cm", base: 1.86, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "138x190cm", base: 2.04, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "140x200cm", base: 2.06, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "153x203cm", base: 2.16, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "160x200cm", base: 2.26, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "180x200cm", base: 2.46, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "200x200cm", base: 2.66, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                { type: "bed", size: "200x220cm", base: 2.86, seam: 0.34, purchaseFactor: 1.0526315789473684 },
+                
+                // 不含接片床笠数据
+                { type: "bedWithoutSeam", size: "80x200cm (不含接片)", base: 1.46, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "90x200cm (不含接片)", base: 1.56, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "99x190cm (不含接片)", base: 1.66, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "100x200cm (不含接片)", base: 1.66, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "120x200cm (不含接片)", base: 1.86, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "138x190cm (不含接片)", base: 2.04, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "140x200cm (不含接片)", base: 2.06, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "153x203cm (不含接片)", base: 2.16, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "160x200cm (不含接片)", base: 2.26, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "180x200cm (不含接片)", base: 2.46, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "200x200cm (不含接片)", base: 2.66, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "bedWithoutSeam", size: "200x220cm (不含接片)", base: 2.86, seam: 0, purchaseFactor: 1.0526315789473684 },
+                
+                // 枕套数据
+                { type: "pillow", size: "48x74cm", base: 1.72, seam: 0, purchaseFactor: 1.0526315789473684 },
+                
+                // 被套数据
+                { type: "quilt", size: "135x200", base: 2.9, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "150x200", base: 3.2, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "160x210", base: 3.4, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "180x200", base: 3.8, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "180x220", base: 3.8, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "200x200", base: 4.2, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "230x230", base: 4.8, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "240x220", base: 5.0, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "quilt", size: "264x230", base: 5.4, seam: 0, purchaseFactor: 1.0526315789473684 },
+                
+                // 接片数据
+                { type: "seam", size: "80x200cm", base: 0.84, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "90x200cm", base: 0.94, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "99x190cm", base: 1.03, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "100x200cm", base: 1.04, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "120x200cm", base: 1.24, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "138x190cm", base: 1.42, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "140x200cm", base: 1.44, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "153x203cm", base: 1.54, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "160x200cm", base: 1.64, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "180x200cm", base: 1.84, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "200x200cm", base: 2.04, seam: 0, purchaseFactor: 1.0526315789473684 },
+                { type: "seam", size: "200x220cm", base: 2.24, seam: 0, purchaseFactor: 1.0526315789473684 }
+            ];
+            
+            const purchaseFactor = 1.0526315789473684; // 1/0.95
+            
+            // DOM 元素
+            const productType = document.getElementById('productType');
+            const sizeInput = document.getElementById('sizeInput');
+            const sizeSuggestions = document.getElementById('sizeSuggestions');
+            const quantityInput = document.getElementById('quantity');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const sizeComparison = document.getElementById('sizeComparison');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const batchTabs = document.querySelectorAll('.batch-tab');
+            const batchSections = document.querySelectorAll('.batch-section');
+            const resetBatchBtn = document.getElementById('resetBatchBtn');
+            const batchTotal = document.getElementById('batchTotal');
+            const comparisonTitle = document.getElementById('comparisonTitle');
+            const toggleComparisonBtn = document.getElementById('toggleComparison');
+            const comparisonContainer = document.getElementById('comparisonContainer');
+            const resetSizeBtn = document.getElementById('resetSizeBtn');
+            const resetQuantityBtn = document.getElementById('resetQuantityBtn');
+            
+            // 结果元素
+            const resultType = document.getElementById('resultType');
+            const resultSize = document.getElementById('resultSize');
+            const resultQuantity = document.getElementById('resultQuantity');
+            
+            const baseFabricEl = document.getElementById('baseFabric');
+            const seamFabricEl = document.getElementById('seamFabric');
+            const totalFabricEl = document.getElementById('totalFabric');
+            const purchaseFabricEl = document.getElementById('purchaseFabric');
+            const finalPurchaseEl = document.getElementById('finalPurchase');
+            
+            const basePerUnitEl = document.getElementById('basePerUnit');
+            const seamPerUnitEl = document.getElementById('seamPerUnit');
+            
+            // 批量结果元素
+            const batchBedTotalEl = document.getElementById('batchBedTotal');
+            const batchBedWithoutSeamTotalEl = document.getElementById('batchBedWithoutSeamTotal');
+            const batchQuiltTotalEl = document.getElementById('batchQuiltTotal');
+            const batchPillowTotalEl = document.getElementById('batchPillowTotal');
+            const batchSeamTotalEl = document.getElementById('batchSeamTotal');
+            
+            // 结果区域
+            const singleResults = document.getElementById('single-results');
+            const batchResults = document.getElementById('batch-results');
+            
+            // 当前过滤类型
+            let currentFilter = 'all';
+            let currentQuantity = 10;
+            let currentSizeData = null;
+            let isComparisonCollapsed = true; // 默认折叠状态
+            
+            // 初始化
+            init();
+            
+            function init() {
+                // 初始化标签页
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(c => c.classList.remove('active'));
+                        
+                        this.classList.add('active');
+                        document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
+                        
+                        // 更新结果区域显示
+                        if (this.dataset.tab === 'single') {
+                            singleResults.style.display = 'block';
+                            batchResults.style.display = 'none';
+                        } else {
+                            singleResults.style.display = 'none';
+                            batchResults.style.display = 'block';
+                            // 重置单产品输入框
+                            resetSingleInputs();
+                            calculateBatch(); // 批量处理标签激活时立即计算
+                        }
+                    });
+                });
+                
+                // 初始化批量标签页
+                batchTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        batchTabs.forEach(t => t.classList.remove('active'));
+                        batchSections.forEach(s => s.classList.remove('active'));
+                        
+                        this.classList.add('active');
+                        document.getElementById(`batch-${this.dataset.batchType}`).classList.add('active');
+                    });
+                });
+                
+                // 初始化过滤按钮
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filterBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentFilter = this.dataset.filter;
+                        updateSizeComparison(currentQuantity, currentFilter);
+                    });
+                });
+                
+                // 初始化批量表格
+                initBatchTables();
+                
+                // 折叠按钮事件
+                toggleComparisonBtn.addEventListener('click', toggleComparison);
+                
+                // 重置按钮事件
+                resetSizeBtn.addEventListener('click', resetSizeInput);
+                resetQuantityBtn.addEventListener('click', resetQuantityInput);
+                
+                // 事件监听
+                productType.addEventListener('change', function() {
+                    updateTypeDisplay();
+                    updateSizeSuggestions();
+                    calculate();
+                });
+                
+                // 尺寸输入框事件
+                sizeInput.addEventListener('input', function() {
+                    updateSizeSuggestions();
+                    
+                    // 尝试查找匹配尺寸
+                    const selectedType = productType.value;
+                    const inputValue = this.value.trim();
+                    
+                    if (inputValue === '') {
+                        currentSizeData = null;
+                        return;
+                    }
+                    
+                    // 查找匹配的尺寸数据
+                    const matchedSize = fabricData.find(item => 
+                        item.type === selectedType && 
+                        item.size.toLowerCase() === inputValue.toLowerCase()
+                    );
+                    
+                    if (matchedSize) {
+                        currentSizeData = matchedSize;
+                        calculate();
+                    }
+                });
+                
+                sizeInput.addEventListener('focus', function() {
+                    updateSizeSuggestions();
+                    sizeSuggestions.style.display = 'block';
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!sizeInput.contains(e.target) && !sizeSuggestions.contains(e.target)) {
+                        sizeSuggestions.style.display = 'none';
+                    }
+                });
+                
+                quantityInput.addEventListener('input', function() {
+                    currentQuantity = parseInt(this.value) || 0;
+                    if (currentSizeData) calculate();
+                });
+                
+                calculateBtn.addEventListener('click', function() {
+                    if (!currentSizeData) {
+                        alert('请输入有效的产品尺寸');
+                        return;
+                    }
+                    calculate();
+                });
+                
+                resetBatchBtn.addEventListener('click', resetBatch);
+                
+                // 初始计算
+                updateSizeSuggestions();
+                calculate();
+                toggleComparison(); // 默认折叠比较表格
+            }
+            
+            // 更新尺寸建议
+            function updateSizeSuggestions() {
+                const selectedType = productType.value;
+                const inputValue = sizeInput.value.toLowerCase();
+                
+                // 获取当前类型的尺寸选项
+                const sizeOptions = fabricData.filter(item => item.type === selectedType);
+                
+                // 清空建议列表
+                sizeSuggestions.innerHTML = '';
+                
+                // 如果没有输入值，显示所有尺寸
+                if (inputValue === '') {
+                    sizeOptions.forEach(item => {
+                        const option = document.createElement('div');
+                        option.className = 'suggestion-item';
+                        option.textContent = item.size;
+                        option.addEventListener('click', function() {
+                            sizeInput.value = item.size;
+                            currentSizeData = item;
+                            sizeSuggestions.style.display = 'none';
+                            calculate();
+                        });
+                        sizeSuggestions.appendChild(option);
+                    });
+                    sizeSuggestions.style.display = sizeOptions.length > 0 ? 'block' : 'none';
+                    return;
+                }
+                
+                // 过滤匹配的尺寸
+                const matchedSizes = sizeOptions.filter(item => 
+                    item.size.toLowerCase().includes(inputValue)
+                );
+                
+                if (matchedSizes.length === 0) {
+                    const noResult = document.createElement('div');
+                    noResult.className = 'no-results';
+                    noResult.textContent = '未找到匹配尺寸';
+                    sizeSuggestions.appendChild(noResult);
+                    sizeSuggestions.style.display = 'block';
+                    return;
+                }
+                
+                matchedSizes.forEach(item => {
+                    const option = document.createElement('div');
+                    option.className = 'suggestion-item';
+                    
+                    // 高亮匹配部分
+                    const index = item.size.toLowerCase().indexOf(inputValue);
+                    if (index !== -1) {
+                        const before = item.size.substring(0, index);
+                        const match = item.size.substring(index, index + inputValue.length);
+                        const after = item.size.substring(index + inputValue.length);
+                        
+                        option.innerHTML = `${before}<span class="suggestion-highlight">${match}</span>${after}`;
+                    } else {
+                        option.textContent = item.size;
+                    }
+                    
+                    option.addEventListener('click', function() {
+                        sizeInput.value = item.size;
+                        currentSizeData = item;
+                        sizeSuggestions.style.display = 'none';
+                        // 自动设置产品类型
+                        productType.value = item.type;
+                        updateTypeDisplay();
+                        calculate();
+                    });
+                    sizeSuggestions.appendChild(option);
+                });
+                
+                sizeSuggestions.style.display = 'block';
+            }
+            
+            function updateTypeDisplay() {
+                const type = productType.value;
+                if (type === 'bed') {
+                    resultType.textContent = '含接片床笠';
+                } else if (type === 'bedWithoutSeam') {
+                    resultType.textContent = '不含接片床笠';
+                } else if (type === 'quilt') {
+                    resultType.textContent = '被套';
+                } else if (type === 'seam') {
+                    resultType.textContent = '接片';
+                } else {
+                    resultType.textContent = '枕套';
+                }
+            }
+            
+            // 辅助函数：四舍五入保留1位小数
+            function roundToOneDecimal(value) {
+                return Math.round(value * 10) / 10;
+            }
+            
+            function calculate() {
+                if (!currentSizeData) return;
+                
+                const productTypeValue = productType.value;
+                const quantity = parseInt(quantityInput.value) || 0;
+                
+                // 更新基本信息
+                resultSize.textContent = currentSizeData.size;
+                resultQuantity.textContent = quantity;
+                
+                // 计算当前尺寸的布料用量
+                const basePerUnitValue = currentSizeData.base;
+                const seamPerUnitValue = currentSizeData.seam;
+                const totalPerUnit = basePerUnitValue + seamPerUnitValue;
+                
+                let totalBase = quantity * basePerUnitValue;
+                let totalSeam = quantity * seamPerUnitValue;
+                let totalFabricValue = totalBase + totalSeam;
+                
+                // 特殊处理接片采购量
+                let purchaseAmount = totalFabricValue * purchaseFactor;
+                
+                if (productTypeValue === 'seam') {
+                    // 接片采购量除以7后再除以0.95（乘以采购系数1.0526）
+                    purchaseAmount = (totalFabricValue / 7) * purchaseFactor;
+                } else if (productTypeValue === 'bedWithoutSeam') {
+                    // 不含接片床笠的采购量 = 床笠本身采购量 + 接片采购量
+                    
+                    // 1. 床笠本身采购量
+                    const bedPurchase = basePerUnitValue * quantity * purchaseFactor;
+                    
+                    // 2. 对应接片的采购量
+                    // 提取基础尺寸（去掉括号部分）
+                    const baseSize = currentSizeData.size.replace(' (不含接片)', '');
+                    
+                    // 查找匹配的接片数据
+                    const matchingSeam = fabricData.find(item => 
+                        item.type === 'seam' && 
+                        item.size === baseSize
+                    );
+                    
+                    let seamPurchase = 0;
+                    if (matchingSeam) {
+                        // 接片采购量 = (接片基础用布 * 数量) / 7 * 1.0526
+                        seamPurchase = (matchingSeam.base * quantity / 7) * purchaseFactor;
+                    }
+                    
+                    purchaseAmount = bedPurchase + seamPurchase;
+                }
+                
+                // 四舍五入保留1位小数
+                totalBase = roundToOneDecimal(totalBase);
+                totalSeam = roundToOneDecimal(totalSeam);
+                totalFabricValue = roundToOneDecimal(totalFabricValue);
+                purchaseAmount = roundToOneDecimal(purchaseAmount);
+                
+                // 更新计算结果
+                baseFabricEl.textContent = totalBase.toFixed(1);
+                seamFabricEl.textContent = totalSeam.toFixed(1);
+                totalFabricEl.textContent = totalFabricValue.toFixed(1);
+                purchaseFabricEl.textContent = purchaseAmount.toFixed(1);
+                finalPurchaseEl.textContent = purchaseAmount.toFixed(1);
+                
+                // 更新单位用量（保留2位小数）
+                basePerUnitEl.textContent = basePerUnitValue.toFixed(2);
+                seamPerUnitEl.textContent = seamPerUnitValue.toFixed(2);
+                
+                // 更新尺寸比较表格
+                updateSizeComparison(quantity, currentFilter);
+            }
+            
+            function updateSizeComparison(quantity, filter) {
+                let html = '';
+                
+                fabricData.forEach(item => {
+                    // 应用过滤器
+                    if (filter !== 'all' && item.type !== filter) return;
+                    
+                    const basePerUnit = item.base;
+                    const seamPerUnit = item.seam;
+                    const totalPerUnit = basePerUnit + seamPerUnit;
+                    let totalFabric = quantity * totalPerUnit;
+                    let purchaseAmount = totalFabric * purchaseFactor;
+                    
+                    // 特殊处理接片采购量
+                    if (item.type === 'seam') {
+                        purchaseAmount = (totalFabric / 7) * purchaseFactor;
+                    } else if (item.type === 'bedWithoutSeam') {
+                        // 不含接片床笠的采购量
+                        const bedPurchase = basePerUnit * quantity * purchaseFactor;
+                        
+                        // 提取基础尺寸（去掉括号部分）
+                        const baseSize = item.size.replace(' (不含接片)', '');
+                        
+                        // 查找匹配的接片数据
+                        const matchingSeam = fabricData.find(seam => 
+                            seam.type === 'seam' && 
+                            seam.size === baseSize
+                        );
+                        
+                        let seamPurchase = 0;
+                        if (matchingSeam) {
+                            seamPurchase = (matchingSeam.base * quantity / 7) * purchaseFactor;
+                        }
+                        
+                        purchaseAmount = bedPurchase + seamPurchase;
+                    }
+                    
+                    // 四舍五入保留1位小数
+                    purchaseAmount = roundToOneDecimal(purchaseAmount);
+                    
+                    const isCurrent = currentSizeData && item.size === currentSizeData.size && item.type === productType.value;
+                    
+                    // 获取产品类型图标
+                    let typeIcon = '';
+                    let typeName = '';
+                    
+                    if (item.type === 'bed') {
+                        typeIcon = '<span class="product-type-icon product-bed">床</span>';
+                        typeName = '含接片床笠';
+                    } else if (item.type === 'bedWithoutSeam') {
+                        typeIcon = '<span class="product-type-icon product-bed-without-seam">床</span>';
+                        typeName = '不含接片床笠';
+                    } else if (item.type === 'quilt') {
+                        typeIcon = '<span class="product-type-icon product-quilt">被</span>';
+                        typeName = '被套';
+                    } else if (item.type === 'seam') {
+                        typeIcon = '<span class="product-type-icon product-seam">接</span>';
+                        typeName = '接片';
+                    } else {
+                        typeIcon = '<span class="product-type-icon product-pillow">枕</span>';
+                        typeName = '枕套';
+                    }
+                    
+                    html += `
+                    <tr class="${isCurrent ? 'current-size' : ''}">
+                        <td>${typeIcon} ${typeName}</td>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td>${totalPerUnit.toFixed(2)}</td>
+                        <td class="purchase-amount">${purchaseAmount.toFixed(1)}</td>
+                    </tr>
+                    `;
+                });
+                
+                sizeComparison.innerHTML = html;
+                
+                // 更新标题
+                let filterText = '';
+                if (filter === 'bed') filterText = '含接片床笠';
+                else if (filter === 'bedWithoutSeam') filterText = '不含接片床笠';
+                else if (filter === 'quilt') filterText = '被套';
+                else if (filter === 'pillow') filterText = '枕套';
+                else if (filter === 'seam') filterText = '接片';
+                else filterText = '所有';
+                
+                comparisonTitle.textContent = `${filterText}产品采购量对比（基于当前加工数量）`;
+            }
+            
+            function initBatchTables() {
+                // 初始化含接片床笠批量表格
+                let bedHtml = '';
+                const bedItems = fabricData.filter(item => item.type === 'bed');
+                bedItems.forEach(item => {
+                    bedHtml += `
+                    <tr>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td>${item.seam.toFixed(2)}</td>
+                        <td><input type="number" class="batch-quantity" min="0" value="0" data-size="${item.size}" data-type="bed"></td>
+                        <td class="batch-purchase">0.0</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('batchBedTable').innerHTML = bedHtml;
+                
+                // 初始化不含接片床笠批量表格
+                let bedWithoutSeamHtml = '';
+                const bedWithoutSeamItems = fabricData.filter(item => item.type === 'bedWithoutSeam');
+                
+                // 获取接片数据用于匹配
+                const seamItems = fabricData.filter(item => item.type === 'seam');
+                
+                bedWithoutSeamItems.forEach(item => {
+                    // 提取基础尺寸（去掉括号部分）
+                    const baseSize = item.size.replace(' (不含接片)', '');
+                    
+                    // 查找匹配的接片数据
+                    const matchingSeam = seamItems.find(seam => seam.size === baseSize);
+                    const seamValue = matchingSeam ? matchingSeam.base.toFixed(2) : '0.00';
+                    
+                    bedWithoutSeamHtml += `
+                    <tr>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td>${seamValue}</td>
+                        <td class="total-fabric">${(parseFloat(item.base) + parseFloat(matchingSeam ? matchingSeam.base : 0)).toFixed(2)}</td>
+                        <td><input type="number" class="batch-quantity" min="0" value="0" data-size="${item.size}" data-type="bedWithoutSeam"></td>
+                        <td class="batch-purchase">0.0</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('batchBedWithoutSeamTable').innerHTML = bedWithoutSeamHtml;
+                
+                // 初始化被套批量表格
+                let quiltHtml = '';
+                const quiltItems = fabricData.filter(item => item.type === 'quilt');
+                quiltItems.forEach(item => {
+                    quiltHtml += `
+                    <tr>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td><input type="number" class="batch-quantity" min="0" value="0" data-size="${item.size}" data-type="quilt"></td>
+                        <td class="batch-purchase">0.0</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('batchQuiltTable').innerHTML = quiltHtml;
+                
+                // 初始化枕套批量表格
+                let pillowHtml = '';
+                const pillowItems = fabricData.filter(item => item.type === 'pillow');
+                pillowItems.forEach(item => {
+                    pillowHtml += `
+                    <tr>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td><input type="number" class="batch-quantity" min="0" value="0" data-size="${item.size}" data-type="pillow"></td>
+                        <td class="batch-purchase">0.0</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('batchPillowTable').innerHTML = pillowHtml;
+                
+                // 初始化接片批量表格
+                let seamHtml = '';
+                seamItems.forEach(item => {
+                    seamHtml += `
+                    <tr>
+                        <td>${item.size}</td>
+                        <td>${item.base.toFixed(2)}</td>
+                        <td><input type="number" class="batch-quantity" min="0" value="0" data-size="${item.size}" data-type="seam"></td>
+                        <td class="batch-purchase">0.0</td>
+                    </tr>
+                    `;
+                });
+                document.getElementById('batchSeamTable').innerHTML = seamHtml;
+                
+                // 添加批量输入框的事件监听（实时计算）
+                const batchInputs = document.querySelectorAll('.batch-quantity');
+                batchInputs.forEach(input => {
+                    input.addEventListener('input', calculateBatch);
+                });
+            }
+            
+            function calculateBatch() {
+                let totalPurchase = 0;
+                let bedTotal = 0;
+                let bedWithoutSeamTotal = 0;
+                let quiltTotal = 0;
+                let pillowTotal = 0;
+                let seamTotal = 0;
+                
+                // 获取所有批量输入行
+                const inputs = document.querySelectorAll('.batch-quantity');
+                
+                inputs.forEach(input => {
+                    const size = input.dataset.size;
+                    const type = input.dataset.type;
+                    
+                    // 查找尺寸数据
+                    const itemData = fabricData.find(item => item.size === size && item.type === type);
+                    if (!itemData) return;
+                    
+                    const quantity = parseInt(input.value) || 0;
+                    const basePerUnit = itemData.base;
+                    const seamPerUnit = itemData.seam;
+                    
+                    let purchaseAmount = 0;
+                    
+                    if (type === 'seam') {
+                        // 接片采购量 = (基础用布 * 数量) / 7 * 1.0526
+                        purchaseAmount = (basePerUnit * quantity / 7) * purchaseFactor;
+                    } else if (type === 'bedWithoutSeam') {
+                        // 不含接片床笠的采购量 = 床笠本身采购量 + 接片采购量
+                        
+                        // 1. 床笠本身采购量
+                        const bedPurchase = basePerUnit * quantity * purchaseFactor;
+                        
+                        // 2. 对应接片的采购量
+                        // 提取基础尺寸（去掉括号部分）
+                        const baseSize = size.replace(' (不含接片)', '');
+                        
+                        // 查找匹配的接片数据
+                        const matchingSeam = fabricData.find(item => 
+                            item.type === 'seam' && 
+                            item.size === baseSize
+                        );
+                        
+                        let seamPurchase = 0;
+                        if (matchingSeam) {
+                            // 接片采购量 = (接片基础用布 * 数量) / 7 * 1.0526
+                            seamPurchase = (matchingSeam.base * quantity / 7) * purchaseFactor;
+                        }
+                        
+                        purchaseAmount = bedPurchase + seamPurchase;
+                    } else {
+                        // 其他产品采购量 = (基础用布 + 接片用布) * 数量 * 1.0526
+                        purchaseAmount = (basePerUnit + seamPerUnit) * quantity * purchaseFactor;
+                    }
+                    
+                    // 四舍五入保留1位小数
+                    purchaseAmount = roundToOneDecimal(purchaseAmount);
+                    
+                    // 更新当前行的采购量
+                    const row = input.closest('tr');
+                    const purchaseCell = row.querySelector('.batch-purchase');
+                    purchaseCell.textContent = purchaseAmount.toFixed(1);
+                    
+                    // 累加总量
+                    totalPurchase += purchaseAmount;
+                    
+                    // 按类型累加
+                    if (type === 'bed') bedTotal += purchaseAmount;
+                    else if (type === 'bedWithoutSeam') bedWithoutSeamTotal += purchaseAmount;
+                    else if (type === 'quilt') quiltTotal += purchaseAmount;
+                    else if (type === 'pillow') pillowTotal += purchaseAmount;
+                    else if (type === 'seam') seamTotal += purchaseAmount;
+                });
+                
+                // 四舍五入总计
+                totalPurchase = roundToOneDecimal(totalPurchase);
+                bedTotal = roundToOneDecimal(bedTotal);
+                bedWithoutSeamTotal = roundToOneDecimal(bedWithoutSeamTotal);
+                quiltTotal = roundToOneDecimal(quiltTotal);
+                pillowTotal = roundToOneDecimal(pillowTotal);
+                seamTotal = roundToOneDecimal(seamTotal);
+                
+                // 更新结果显示
+                batchTotal.textContent = totalPurchase.toFixed(1);
+                batchBedTotalEl.textContent = bedTotal.toFixed(1);
+                batchBedWithoutSeamTotalEl.textContent = bedWithoutSeamTotal.toFixed(1);
+                batchQuiltTotalEl.textContent = quiltTotal.toFixed(1);
+                batchPillowTotalEl.textContent = pillowTotal.toFixed(1);
+                batchSeamTotalEl.textContent = seamTotal.toFixed(1);
+            }
+            
+            function resetBatch() {
+                // 重置所有输入
+                const inputs = document.querySelectorAll('.batch-quantity');
+                inputs.forEach(input => input.value = '0');
+                
+                // 重置计算结果
+                const purchaseCells = document.querySelectorAll('.batch-purchase');
+                purchaseCells.forEach(cell => cell.textContent = '0.0');
+                
+                // 重新计算
+                calculateBatch();
+            }
+            
+            function resetSingleInputs() {
+                // 重置单产品输入
+                sizeInput.value = '';
+                quantityInput.value = '0';
+                currentSizeData = null;
+                
+                // 清除结果
+                baseFabricEl.textContent = '-';
+                seamFabricEl.textContent = '-';
+                totalFabricEl.textContent = '-';
+                purchaseFabricEl.textContent = '-';
+                finalPurchaseEl.textContent = '-';
+                
+                basePerUnitEl.textContent = '-';
+                seamPerUnitEl.textContent = '-';
+                
+                resultSize.textContent = '-';
+                resultQuantity.textContent = '0';
+            }
+            
+            function resetSizeInput() {
+                sizeInput.value = '';
+                currentSizeData = null;
+                calculate();
+            }
+            
+            function resetQuantityInput() {
+                quantityInput.value = '0';
+                currentQuantity = 0;
+                if (currentSizeData) calculate();
+            }
+            
+            function toggleComparison() {
+                isComparisonCollapsed = !isComparisonCollapsed;
+                
+                if (isComparisonCollapsed) {
+                    comparisonContainer.style.maxHeight = '0';
+                    comparisonContainer.style.overflow = 'hidden';
+                    comparisonContainer.style.opacity = '0';
+                    toggleComparisonBtn.classList.remove('collapsed');
+                } else {
+                    comparisonContainer.style.maxHeight = '2000px';
+                    comparisonContainer.style.opacity = '1';
+                    toggleComparisonBtn.classList.add('collapsed');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
